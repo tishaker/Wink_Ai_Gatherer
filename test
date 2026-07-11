@@ -1,0 +1,11 @@
+a = {"pop": "a", "pop2": "b", "pop3": "c"}
+
+sp = []
+for e in a:
+    sp.append(a[e])
+
+
+
+
+for i in range(len(sp)):
+    print(sp[i])

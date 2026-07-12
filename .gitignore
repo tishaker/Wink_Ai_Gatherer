@@ -1,3 +1,4 @@
 ini_files/
 *.ini
 test.py
+.env

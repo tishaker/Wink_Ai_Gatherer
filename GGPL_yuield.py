@@ -1,8 +1,20 @@
-import requests, re
+import requests, re, os, configparser
 import google_play_scraper as gp
 import datetime as dt
-from ini_parser import config_write
+from Reports import report
 
+def config_write(path, section, id, version, desc, ddt, folder_name="ini_files"):
+    config = configparser.ConfigParser()
+    os.makedirs(f"{folder_name}/", exist_ok=True)
+    config.read(f"{folder_name}/{path}", encoding='utf-8')
+    config[section] = {
+        "id": id,
+        "version": version,
+        "desc": desc,
+        "date_modified": ddt
+    }
+    with open(f"{folder_name}/{path}", 'w', encoding='utf-8') as configfile:
+        config.write(configfile)
 
 CompetitorsList_toIDsGP = {
     "Кинопоиск": "ru.kinopoisk.tv",
@@ -92,9 +104,6 @@ for competitors in CompetitorsList_toIDsAPS:
 print("\nFetching RuStore data")
 
 
-import requests
-from ini_parser import config_write
-
 CompetitorsList_toIDsRuStore = {
     "Кинопоиск": "ru.kinopoisk",
     "Иви": "ru.ivi.client",
@@ -133,3 +142,4 @@ for competitors in CompetitorsList_toIDsRuStore:
         
 
 
+report("competitor_report.txt")

@@ -2,3 +2,4 @@ ini_files/
 *.ini
 test.py
 .env
+competitor_report.txt

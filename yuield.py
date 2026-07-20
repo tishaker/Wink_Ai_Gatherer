@@ -71,9 +71,6 @@ for e in monitored_ids:
 
 print("\nFetching AppStore data")
 
-
-import requests
-
 CompetitorsList_toIDsAPS = {
     "Кинопоиск": "477718890",
     "Иви": "455705533",

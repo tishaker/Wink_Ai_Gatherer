@@ -1,4 +1,5 @@
-import os, configparser
+import os
+import configparser
 from google import genai
 from dotenv import load_dotenv
 

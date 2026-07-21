@@ -1,4 +1,8 @@
-import requests, re, os, configparser, yaml
+import requests
+import re
+import os
+import configparser
+import yaml
 import google_play_scraper as gp
 import datetime as dt
 from Reports import report

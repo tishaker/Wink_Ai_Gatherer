@@ -41,10 +41,10 @@ print("\nConnection established with services, fetching patchnotes\n")
 for e in monitored_AppIds:
     try:
         url = f"https://play.google.com/store/apps/details?AppId={e}&hl=ru&gl=RU"
-        data = requests.get(url).text
+        dataStore = requests.get(url).text
         
         pattern = r'<section[^>]*>.*?Новое в приложении.*?<div[^>]*>([^<]+)</div>.*?</section>'
-        match = re.search(pattern, data, re.DOTALL)
+        match = re.search(pattern, dataStore, re.DOTALL)
         
         if match:
             text_candAppIdate = match.group(1).strip()
@@ -74,12 +74,12 @@ for competitors in CompetitorsList_toAppIdsAPS:
         AppId = CompetitorsList_toAppIdsAPS[competitors]
         if AppId != "nonexistent":
             url = f"https://itunes.apple.com/lookup?AppId={AppId}&country=ru"
-            data = requests.get(url).json()
+            dataStore = requests.get(url).json()
             print(f"\n{competitors}")
-            print(data["results"][0]["releaseNotes"])
-            print(data["results"][0]["version"])
-            print(data["results"][0]["currentVersionReleaseDate"])
-            config_write("AppStore.ini", competitors, AppId, data["results"][0]["version"], data["results"][0]["releaseNotes"], data["results"][0]["currentVersionReleaseDate"])
+            print(dataStore["results"][0]["releaseNotes"])
+            print(dataStore["results"][0]["version"])
+            print(dataStore["results"][0]["currentVersionReleaseDate"])
+            config_write("AppStore.ini", competitors, AppId, dataStore["results"][0]["version"], dataStore["results"][0]["releaseNotes"], dataStore["results"][0]["currentVersionReleaseDate"])
         else:
             print("This app doesn't exist in that packet store")
     except Exception as x:

@@ -81,9 +81,9 @@ for competitors in CompetitorsList_toAppIdsAPS:
             print(dataStore["results"][0]["currentVersionReleaseDate"])
             config_write("AppStore.ini", competitors, AppId, dataStore["results"][0]["version"], dataStore["results"][0]["releaseNotes"], dataStore["results"][0]["currentVersionReleaseDate"])
         else:
-            print("This app doesn't exist in that packet store")
+            print(f"{competitors} doesn't exist in that packet store")
     except Exception as x:
-        print(f"Error for{competitors}: {x}")
+        print(f"Error for {competitors}: {x}")
 
 
 

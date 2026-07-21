@@ -81,14 +81,14 @@ for competitors in CompetitorsList_toAppIdsAPS:
             print(dataStore["results"][0]["currentVersionReleaseDate"])
             config_write("AppStore.ini", competitors, AppId, dataStore["results"][0]["version"], dataStore["results"][0]["releaseNotes"], dataStore["results"][0]["currentVersionReleaseDate"])
         else:
-            print(f"{competitors} doesn't exist in that packet store")
+            print(f"{competitors} doesn't exist in that app store\n")
     except Exception as x:
         print(f"Error for {competitors}: {x}")
 
 
 
 # RuStore
-print("\nFetching RuStore data")
+print("Fetching RuStore data")
 
 CompetitorsList_toAppIdsRuStore = data.get("RuStore", {})
 

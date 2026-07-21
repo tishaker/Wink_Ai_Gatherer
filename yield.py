@@ -13,7 +13,15 @@ with open("AppIds_list.yaml", "r", encoding="utf-8") as file:
 # ==========
 
 
-def config_write(path, section, AppId, version, desc, ddt, folder_name="ini_files"):
+def config_write(
+    path: str, # Path to the file in system
+    section: str, # e.g. Google Play, AppStore..
+    AppId: str, # AppStore uses int format, but Google Play and RuStore use str app IDs so we need str
+    version: str, # e.g. v1.4.53
+    desc: str, # e.g. Поработали «под капотом»: улучшили стабильность приложения, ...
+    ddt: str, # e.g. 2026-07-20 09:20:50
+    folder_name: str = "ini_files", # e.g. "Work IDs"
+) -> None:
     config = configparser.ConfigParser()
     os.makedirs(f"{folder_name}/", exist_ok=True)
     config.read(f"{folder_name}/{path}", encoding='utf-8')

@@ -1,0 +1,48 @@
+# IDs list
+GooglePlay:
+  "Амедиатека": "ru.amediateka"
+  Viju: "ru.viasat.apps.viju"
+  "Иви": "ru.ivi.client"
+  KION: "ru.mts.mtstv"
+  "Кинопоиск": "ru.kinopoisk.tv"
+  "НТВ-ПЛЮС ТВ": "tv.ntvplus.app1"
+  Okko: "ru.more.play"
+  PREMIER: "gpm.tnt_premier"
+  RUTUBE: "rtb.mobile.android"
+  START: "ru.start.androidmobile"
+  "Смотрёшка": "tv.lfstrm.smotreshka"
+  "Триколор Кино и ТВ": "com.gsgroup.tricoloronline"
+
+
+AppStore:
+  "Амедиатека": "695094274"
+  Viju: "1573234236"
+  "Иви": "455705533"
+  KION: "1451612172"
+  "Кинопоиск": "477718890"
+  "НТВ-ПЛЮС ТВ": "nonexistent"
+  Okko: "nonexistent"
+  PREMIER: "nonexistent"
+  RUTUBE: "nonexistent"
+  START: "1273218458"
+  "Смотрёшка": "911254937"
+  "Триколор Кино и ТВ": "1412797916"
+
+
+RuStore:
+  "Амедиатека": "com.amdteka"
+  Viju: "ru.viasat.apps.viju"
+  "Иви": "ru.ivi.client"
+  KION: "ru.mts.mtstv"
+  "Кинопоиск": "ru.kinopoisk"
+  "НТВ-ПЛЮС ТВ": "tv.ntvplus.app"
+  Okko: "ru.more.play"
+  PREMIER: "gpm.tnt_premier"
+  RUTUBE: "ru.rutube.app"
+  START: "ru.start.androidmobile"
+  "Смотрёшка": "tv.lfstrm.smotreshka"
+  "Триколор Кино и ТВ": "com.gsgroup.tricoloronline.mobile"
+
+
+
+# 'Амедиатека', 'Вiju', 'Иви', 'КION', 'Кинопоиск', 'НТВ-ПЛЮС ТВ', 'Оkko', 'ПREMIER', 'Рutube', 'СTART', 'Смотрёшка', 'Триколор Кино и ТВ'

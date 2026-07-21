@@ -1,7 +1,13 @@
-import requests, re, os, configparser
+import requests, re, os, configparser, yaml
 import google_play_scraper as gp
 import datetime as dt
 from Reports import report
+
+# yaml setup
+with open("IDs_list.yaml", "r", encoding="utf-8") as file:
+    data = yaml.safe_load(file)
+# ==========
+
 
 def config_write(path, section, id, version, desc, ddt, folder_name="ini_files"):
     config = configparser.ConfigParser()
@@ -16,20 +22,8 @@ def config_write(path, section, id, version, desc, ddt, folder_name="ini_files")
     with open(f"{folder_name}/{path}", 'w', encoding='utf-8') as configfile:
         config.write(configfile)
 
-CompetitorsList_toIDsGP = {
-    "Кинопоиск": "ru.kinopoisk.tv",
-    "Иви": "ru.ivi.client",
-    "Okko": "ru.more.play",
-    "KION": "ru.mts.mtstv",
-    "PREMIER": "gpm.tnt_premier",
-    "START": "ru.start.androidmobile",
-    "Амедиатека": "ru.amediateka",
-    "Триколор Кино и ТВ": "com.gsgroup.tricoloronline",
-    "Смотрёшка": "tv.lfstrm.smotreshka",
-    "НТВ-ПЛЮС ТВ": "tv.ntvplus.app1",
-    "Viju": "ru.viasat.apps.viju",
-    "Rutube": "rtb.mobile.android"
-    }
+
+CompetitorsList_toIDsGP = data.get("GooglePlay", {})
 monitored_ids = {}
 
 for competitors in CompetitorsList_toIDsGP:
@@ -69,20 +63,11 @@ for e in monitored_ids:
         print(f"Error fetching patchnotes for {e}: {x}")
 
 
+
+# AppStore
 print("\nFetching AppStore data")
 
-CompetitorsList_toIDsAPS = {
-    "Кинопоиск": "477718890",
-    "Иви": "455705533",
-    "KION": "1451612172",
-    "START": "1273218458",
-    "Амедиатека": "695094274",
-    "Триколор Кино и ТВ": "1412797916",
-    "Смотрёшка": "911254937",
-    "НТВ-ПЛЮС ТВ": "6448913831",
-    "Viju": "1573234236",
-}
-
+CompetitorsList_toIDsAPS = data.get("AppStore", {})
 
 for competitors in CompetitorsList_toIDsAPS:
     try:
@@ -98,23 +83,11 @@ for competitors in CompetitorsList_toIDsAPS:
         print(f"Error for{competitors}: {x}")
 
 
+
+# RuStore
 print("\nFetching RuStore data")
 
-
-CompetitorsList_toIDsRuStore = {
-    "Кинопоиск": "ru.kinopoisk",
-    "Иви": "ru.ivi.client",
-    "Okko": "ru.more.play",
-    "KION": "ru.mts.mtstv",
-    "PREMIER": "gpm.tnt_premier",
-    "START": "ru.start.androidmobile",
-    "Амедиатека": "com.amdteka",
-    "Триколор Кино и ТВ": "com.gsgroup.tricoloronline.mobile",
-    "Смотрёшка": "tv.lfstrm.smotreshka",
-    "НТВ-ПЛЮС ТВ": "tv.ntvplus.app",
-    "Viju": "ru.viasat.apps.viju",
-    "Rutube": "ru.rutube.app"
-}
+CompetitorsList_toIDsRuStore = data.get("RuStore", {})
 
 for competitors in CompetitorsList_toIDsRuStore:
     try:

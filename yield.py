@@ -22,6 +22,7 @@ def config_write(
     ddt: str, # e.g. 2026-07-20 09:20:50
     folder_name: str = "ini_files", # e.g. "Work IDs"
 ) -> None:
+    
     config = configparser.ConfigParser()
     os.makedirs(f"{folder_name}/", exist_ok=True)
     config.read(f"{folder_name}/{path}", encoding='utf-8')

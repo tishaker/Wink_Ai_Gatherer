@@ -7,7 +7,7 @@ load_dotenv()
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 
-def report(path="competitor_report.txt"):
+def report(path: str = "competitor_report.txt") -> None:
     with open(path, 'w', encoding='utf-8') as file:
         file.write("\tCompetitors_LastestUpd_Report\n\n")
         
@@ -29,7 +29,7 @@ def report(path="competitor_report.txt"):
     print("done")
 
 
-def gemini_resp(filename, full_text):
+def gemini_resp(filename: str, full_text: str) -> str:
     prompt = f"""
     тебе дан список обновлений мобильных приложений из следующего файла {filename}.
     для каждого приложения из списка сделай следующее:
@@ -56,13 +56,13 @@ def gemini_resp(filename, full_text):
             model='gemini-3.5-flash',
             contents=prompt,
         )
-        return response.text.strip()
+        return response.text.strip() if response.text else "AI failed to produce a response"
     except Exception as e:
         print(f"Ошибка при обработке файла {filename}: {e}")
         return f"{filename}\n----------\nОшибка обработки данных ИИ."
 
 
-def get_content(fpath):
+def get_content(fpath: str) -> str:
     config = configparser.ConfigParser()
     config.read(fpath, encoding='utf-8')
     

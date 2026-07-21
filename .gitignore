@@ -3,3 +3,6 @@ ini_files/
 test.py
 .env
 competitor_report.txt
+__pycache__/
+.ruff_cache/
+.venv

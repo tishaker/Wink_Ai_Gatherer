@@ -1,5 +1,6 @@
 import os
 import configparser
+import datetime as time
 from google import genai
 from dotenv import load_dotenv
 
@@ -22,14 +23,16 @@ def report(path: str = "competitor_report.txt") -> None:
             txt = get_content(fpath)
             
             print(f"отправил весь {fname} в Gemini, жду ответ")
-            ans = gemini_resp(fname, txt)
+            ans = gemini_resp(txt, fname)
             
             file.write(f"{ans}\n\n")
             
-    print("done")
+    print("done writing a report")
+    
+    SetDateStamp()
 
 
-def gemini_resp(filename: str, full_text: str) -> str:
+def gemini_resp(full_text: str, filename: str = "competitor_report.txt") -> str:
     prompt = f"""
     тебе дан список обновлений мобильных приложений из следующего файла {filename}.
     для каждого приложения из списка сделай следующее:
@@ -39,7 +42,7 @@ def gemini_resp(filename: str, full_text: str) -> str:
     
     * если там только вода ("исправили баги"), напиши: "технические исправления," и вкратце их опиши.
     * если изменений нет или написано "No data", напиши: "изменения не указаны".
-    * обязательно выдели появление новых тайлов фильмов и тд и выдели их отдельно снизу указывая платформу, Это - самое важное
+    * обязательно выдели появление новых тайлов фильмов и тд и выдели их отдельно снизу указывая платформу, Это - самое важное.
     
     Верни ответ строго в формате маркированного списка, для читабельности, например:
     {filename}
@@ -73,3 +76,12 @@ def get_content(fpath: str) -> str:
         content += f"приложение: {app}\n\tверсия: {version}\n\tОписание: {desc}\n{'-'*20}\n"
         
     return content
+
+
+def SetDateStamp(filename: str = "competitor_report.txt") -> None:
+    now = time.datetime.now()
+    months = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"]
+    with open(filename, 'a', encoding="utf-8") as file:
+        file.write(f"\nОтчёт был сформирован {now.year} года {now.day} {months[now.month - 1]} в {now.hour} часов {now.minute} минут {now.second}.{(now.microsecond // 1000):03d} секунд")
+        
+    print("\ntimestamp set")

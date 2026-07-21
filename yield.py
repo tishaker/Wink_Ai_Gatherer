@@ -13,27 +13,32 @@ with open("AppIds_list.yaml", "r", encoding="utf-8") as file:
 # ==========
 
 
-def config_write(
+def yaml_write(
     path: str, # Path to the file in system
     section: str, # e.g. Google Play, AppStore..
     AppId: str, # AppStore uses int format, but Google Play and RuStore use str app IDs so we need str
     version: str, # e.g. v1.4.53
     desc: str, # e.g. Поработали «под капотом»: улучшили стабильность приложения, ...
     ddt: str, # e.g. 2026-07-20 09:20:50
-    folder_name: str = "ini_files", # e.g. "Work IDs"
+    folder_name: str = "yaml_files", # e.g. "Work IDs" || Output dir
 ) -> None:
+
+    os.makedirs(f"{folder_name}", exist_ok=True)
+    full_path = os.path.join(folder_name, path)
     
-    config = configparser.ConfigParser()
-    os.makedirs(f"{folder_name}/", exist_ok=True)
-    config.read(f"{folder_name}/{path}", encoding='utf-8')
-    config[section] = {
+    data = {}
+    if os.path.exists(full_path):
+        with open(full_path, "r", encoding="utf-8") as file:
+            data = yaml.safe_load(file) or {}
+
+    data[section] = {
         "AppId": AppId,
         "version": version,
         "desc": desc,
         "date_modified": ddt
     }
-    with open(f"{folder_name}/{path}", 'w', encoding='utf-8') as configfile:
-        config.write(configfile)
+    with open(full_path, 'w', encoding='utf-8') as file:
+        yaml.safe_dump(data, file, allow_unicode=True, sort_keys=False)
 
 
 CompetitorsList_toAppIdsGP = data.get("GooglePlay", {})
@@ -69,7 +74,7 @@ for e in monitored_AppIds:
             patchnotes = "No data"
             
         print(f"Патчноут для {monitored_AppIds[e][0]}: {patchnotes}\n")
-        config_write("GooglePlay.ini", monitored_AppIds[e][0], e, monitored_AppIds[e][2], patchnotes, monitored_AppIds[e][1])
+        yaml_write("GooglePlay.ini", monitored_AppIds[e][0], e, monitored_AppIds[e][2], patchnotes, monitored_AppIds[e][1])
         
         
     except Exception as x:
@@ -92,7 +97,7 @@ for competitors in CompetitorsList_toAppIdsAPS:
             print(dataStore["results"][0]["releaseNotes"])
             print(dataStore["results"][0]["version"])
             print(dataStore["results"][0]["currentVersionReleaseDate"])
-            config_write("AppStore.ini", competitors, AppId, dataStore["results"][0]["version"], dataStore["results"][0]["releaseNotes"], dataStore["results"][0]["currentVersionReleaseDate"])
+            yaml_write("AppStore.ini", competitors, AppId, dataStore["results"][0]["version"], dataStore["results"][0]["releaseNotes"], dataStore["results"][0]["currentVersionReleaseDate"])
         else:
             print(f"{competitors} doesn't exist in that app store\n")
     except Exception as x:
@@ -122,7 +127,7 @@ for competitors in CompetitorsList_toAppIdsRuStore:
         print(version)
         print(patchnotes)
         print(date_modified)
-        config_write("RuStore.ini", competitors, AppId, version, patchnotes, date_modified)
+        yaml_write("RuStore.ini", competitors, AppId, version, patchnotes, date_modified)
     except Exception as x:
         print(f"Error for{competitors}: {x}")
         

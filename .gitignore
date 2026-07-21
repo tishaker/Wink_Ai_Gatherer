@@ -6,3 +6,4 @@ competitor_report.txt
 __pycache__/
 .ruff_cache/
 .venv
+yaml_files

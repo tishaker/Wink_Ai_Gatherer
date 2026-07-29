@@ -22,11 +22,12 @@ def test_get_content(tmp_path):
     result = get_content(str(fake_yaml))
 
     # Assert
-    assert result == {
-        "App": {
-            "AppId": "123",
-            "version": 1.0,
-            "desc": "Test",
-            "date_modified": "2026-07-20",
-        }
-    }
+    expected_output = (
+        "приложение: App\n"
+        "\tAppId: 123\n"
+        "\tверсия: 1.0\n"
+        "\tдата изменения: 2026-07-20\n"
+        "\tописание: Test\n"
+        "------------------------------\n"
+    )
+    assert result == expected_output

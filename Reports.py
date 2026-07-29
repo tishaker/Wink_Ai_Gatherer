@@ -1,5 +1,6 @@
 import os
 import configparser
+import yaml
 import datetime as time
 from google import genai
 from dotenv import load_dotenv
@@ -12,9 +13,9 @@ def report(path: str = "competitor_report.txt") -> None:
     with open(path, 'w', encoding='utf-8') as file:
         file.write("\tCompetitors_LastestUpd_Report\n\n")
         
-        files = ["GooglePlay.ini", "AppStore.ini", "RuStore.ini"]
+        files = ["GooglePlay.yaml", "AppStore.yaml", "RuStore.yaml"]
         for fname in files:
-            fpath = f"ini_files/{fname}"
+            fpath = f"yaml_files/{fname}"
             
             if not os.path.exists(fpath):
                 continue
@@ -66,14 +67,27 @@ def gemini_resp(full_text: str, filename: str = "competitor_report.txt") -> str:
 
 
 def get_content(fpath: str) -> str:
-    config = configparser.ConfigParser()
-    config.read(fpath, encoding='utf-8')
-    
+    with open(fpath, 'r', encoding='utf-8') as f:
+        data = yaml.safe_load(f)
+
+    if not data:
+        return ""
+
     content = ""
-    for app in config.sections():
-        version = config[app].get("version", "N/A")
-        desc = config[app].get("desc", "N/A")
-        content += f"приложение: {app}\n\tверсия: {version}\n\tОписание: {desc}\n{'-'*20}\n"
+    for app, info in data.items():
+        app_id = info.get("AppId", "N/A")
+        version = info.get("version", "N/A")
+        desc = info.get("desc", "N/A")
+        date_modified = info.get("date_modified", "N/A")
+
+        content += (
+            f"приложение: {app}\n"
+            f"\tAppId: {app_id}\n"
+            f"\tверсия: {version}\n"
+            f"\tдата изменения: {date_modified}\n"
+            f"\tописание: {desc}\n"
+            f"{'-' * 30}\n"
+        )
         
     return content
 

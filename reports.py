@@ -5,8 +5,11 @@ import datetime as time
 from google import genai
 from dotenv import load_dotenv
 
+
 load_dotenv()
-client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+
+def get_client():
+    return genai.Client(api_key=os.getenv("GEMINI_API_KEY") or "DUMMY_KEY_FOR_TESTS")
 
 
 def report(path: str = "competitor_report.txt") -> None:
@@ -56,7 +59,7 @@ def gemini_resp(full_text: str, filename: str = "competitor_report.txt") -> str:
     """
     
     try:
-        response = client.models.generate_content(
+        response = get_client().models.generate_content(
             model='gemini-3.5-flash',
             contents=prompt,
         )

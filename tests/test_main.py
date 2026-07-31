@@ -43,7 +43,7 @@ def test_yaml_write(tmp_path):
     # Act
     yaml_write(
         path=str(test_file), # Path to the file in system
-        section="GooglePlay", # e.g. Google Play, AppStore..
+        section="Google Play", # e.g. Google Play, AppStore..
         AppId="1234", # AppStore uses int format, but Google Play and RuStore use str app IDs so we need str
         version="v1.0", # e.g. v1.4.53
         desc="bla bla", # e.g. Поработали «под капотом»: улучшили стабильность приложения, ...

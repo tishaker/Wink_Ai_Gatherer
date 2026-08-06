@@ -1,5 +1,3 @@
-from turtle import TurtleScreenBase
-
 import requests
 import re
 import os
@@ -54,6 +52,9 @@ for competitors in CompetitorsList_toAppIdsGP:
 
 
 # don't forget to finish it, it is the shortage of the succeeding 3 functions
+def parse_google_play(appid : str) -> tuple:
+    return()
+
 def parse_app_store(appid : str) -> tuple:
     url = f"https://itunes.apple.com/lookup?id={appid}&country=ru"
     res = requests.get(url).json().get("results", [{}])[0]
@@ -61,6 +62,15 @@ def parse_app_store(appid : str) -> tuple:
         res.get("version", "unknown"),
         res.get("releaseNotes", "unknown"),
         res.get("currentVersionReleaseDate", "unknown")
+    )
+    
+def parse_ru_store(appid: str) -> tuple:
+    url = f"https://backapi.rustore.ru/applicationData/overallInfo/{appid}"
+    res = requests.get(url).json().get("body", {})
+    return(
+        res.get("versionName", "unknown"),
+        res.get("whatsNew", "unknown"),
+        res.get("appVerUpdatedAt", "unknown")
     )
     
 # it's marked with comments and you prob won't

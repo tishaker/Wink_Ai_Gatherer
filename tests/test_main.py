@@ -1,7 +1,4 @@
-import pytest
-import os
 import yaml
-import requests
 from reports import get_content
 from yield_ import yaml_write
 

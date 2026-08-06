@@ -3,3 +3,4 @@ requests
 google_play_scraper
 pyyaml
 google-genai
+responses

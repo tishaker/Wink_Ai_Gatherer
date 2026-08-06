@@ -8,7 +8,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def get_client():
+def get_client(api_key: str | None = None) -> genai.Client:
+    if api_key:
+        return genai.Client(api_key=api_key)
+    
+    # that's when we return the other key if the main one is absent, for example in tests
     return genai.Client(api_key=os.getenv("GEMINI_API_KEY") or "DUMMY_KEY_FOR_TESTS")
 
 

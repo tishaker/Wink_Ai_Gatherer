@@ -1,3 +1,5 @@
+from turtle import TurtleScreenBase
+
 import requests
 import re
 import os
@@ -48,6 +50,21 @@ for competitors in CompetitorsList_toAppIdsGP:
         monitored_AppIds[app_AppId] = (competitors, dt.datetime.fromtimestamp(result["updated"]), result["version"])
     except Exception as e:
         print(f"Error fetching data for {competitors}: {e}")
+
+
+
+# don't forget to finish it, it is the shortage of the succeeding 3 functions
+def parse_app_store(appid : str) -> tuple:
+    url = f"https://itunes.apple.com/lookup?id={appid}&country=ru"
+    res = requests.get(url).json().get("results", [{}])[0]
+    return(
+        res.get("version", "unknown"),
+        res.get("releaseNotes", "unknown"),
+        res.get("currentVersionReleaseDate", "unknown")
+    )
+    
+# it's marked with comments and you prob won't
+
 
 print("\nConnection established with services, fetching patchnotes\n")
 for e in monitored_AppIds:

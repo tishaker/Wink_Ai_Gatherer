@@ -2,6 +2,7 @@ import requests
 import re
 import os
 import yaml
+import time
 import google_play_scraper as gp
 import datetime as dt
 
@@ -57,12 +58,47 @@ def parse_google_play(appid : str) -> tuple:
 
 def parse_app_store(appid : str) -> tuple:
     url = f"https://itunes.apple.com/lookup?id={appid}&country=ru"
-    res = requests.get(url).json().get("results", [{}])[0]
-    return(
-        res.get("version", "unknown"),
-        res.get("releaseNotes", "unknown"),
-        res.get("currentVersionReleaseDate", "unknown")
-    )
+    res = requests.get(url)
+    while True:
+        if res.status_code == 200:
+
+            result = res.json().get("results", [])
+            if result:
+                data = result[0]
+                return(
+                    data.get("version", "unknown"),
+                    data.get("releaseNotes", "unknown"),
+                    data.get("currentVersionReleaseDate", "unknown")
+                )
+            else:
+                return("unknown", "unknown", "unknown")
+        else:
+
+            if res.status_code == 403:
+                print("Entry Forbidden, status code 403. Try auth")
+                return ("unknown", "unknown", "unknown")
+
+            elif res.status_code == 429:
+
+                retry_after = res.headers.get("Retry-After", "60")
+
+                try:
+                    wait_time = int(retry_after)
+
+                except Exception as e:
+                    print(f"{e}, so the wait time is defaulted to 60 seconds")
+                    wait_time = 60
+
+                time.sleep(wait_time + 2)
+
+                res = requests.get(url)
+
+            elif res.status_code == 404:
+                print("Seems like the server has moved and there's nothing you can do. Error 404")
+                return ("unknown", "unknown", "unknown")
+            else:
+                print("Неизвестная ошибка, попробуйте позже")
+                return ("unknown", "unknown", "unknown")
     
 def parse_ru_store(appid: str) -> tuple:
     url = f"https://backapi.rustore.ru/applicationData/overallInfo/{appid}"

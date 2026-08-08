@@ -39,7 +39,7 @@ def report(path: str = "competitor_report.txt") -> None:
     SetDateStamp()
 
 
-def gemini_resp(full_text: str, filename: str = "competitor_report.txt") -> str:
+def gemini_resp(full_text: str, filename: str = "competitor_report.md") -> str:
     prompt = f"""
     тебе дан список обновлений мобильных приложений из следующего файла {filename}.
     для каждого приложения из списка сделай следующее:
@@ -50,6 +50,8 @@ def gemini_resp(full_text: str, filename: str = "competitor_report.txt") -> str:
     * если там только вода ("исправили баги"), напиши: "технические исправления," и вкратце их опиши.
     * если изменений нет или написано "No data", напиши: "изменения не указаны".
     * обязательно выдели появление новых тайлов фильмов и тд и выдели их отдельно снизу указывая платформу, Это - самое важное.
+    * обязательео выведи отчёт в markdown
+    * сделай разделение по платформам, чтобы было понятно, что это за платформа (GooglePlay, AppStore, RuStore)
     
     Верни ответ строго в формате маркированного списка, для читабельности, например:
     {filename}

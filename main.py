@@ -16,6 +16,10 @@ if __name__ == "__main__":
     
     for store in stores:
         competitors_list = data.get(store["name"], {})
+        
+        if not competitors_list:
+            print(f"[WARNING] Список приложений для {store['name']} пуст или отсутствует!")
+            continue
 
         print(f"\nСоединение установленно, проверяю {store['name']}\n")
 

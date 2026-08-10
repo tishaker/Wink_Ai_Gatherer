@@ -38,105 +38,98 @@ def yaml_write(
         yaml.safe_dump(data, file, allow_unicode=True, sort_keys=False)
 # ==========
 
+def safe_requesting(url: str, keys: str, attr: list, is_html: bool, default_resp: str ='unknown') -> tuple:
+    res = requests.get(url)
+    while True:
+            if res.status_code == 200:
+                if is_html:
+                    html = res.text
+                    
+                    version_match = re.search(r'\["\["(\d+\.\d+[^"]*)"\]', html)
+                    patch_match = re.search(r"(?:Что нового|Новое в приложении).*?<div[^>]*>(.*?)</div>", html, re.DOTALL | re.IGNORECASE)
+                    
+                    version = version_match.group(1) if version_match else default_resp
+                    
+                    if patch_match:
+                        patchnotes = re.sub(r'<[^>]+>', '', patch_match.group(1)).strip()
+                        if '+' in patchnotes or len(patchnotes) < 5:
+                            patchnotes = 'No developer comments for this update'
+                    else:
+                        patchnotes = 'No data'
+                        
+                    date_match = re.search(r'\["\["(\d+\s+[а-яa-z]+\.?\s+\d{4}\s*г?\.)"\]', html, re.IGNORECASE)
+                    
+                    if not date_match:
+                        date_match = re.search(r'(?:Обновлено|Updated).*?<div[^>]*>(.*?)</div>', html, re.DOTALL | re.IGNORECASE)
+                        
+                    if date_match:
+                        current_date = re.sub(r'<[^>]+>', '', date_match.group(1)).strip()
+                    else:
+                        current_date = default_resp
+
+
+                    return (version, patchnotes, current_date)
+
+                else:    
+                    result = res.json().get(keys, [])
+                    if result:
+                        if isinstance(result, list):
+                            data = result[0]
+                        else:
+                            data = result
+
+                        return tuple(data.get(a, default_resp) for a in attr) # генератор, чтобы было не фикс. знач элементов
+                    else:
+                        return(default_resp, default_resp, default_resp)
+            else:
+    
+                if res.status_code == 403:
+                    print("Entry Forbidden, status code 403. Try auth")
+                    return (default_resp, default_resp, default_resp)
+    
+                elif res.status_code == 429:
+    
+                    retry_after = res.headers.get("Retry-After", "60")
+    
+                    try:
+                        wait_time = int(retry_after)
+    
+                    except Exception as e:
+                        print(f"{e}, so the wait time is defaulted to 60 seconds")
+                        wait_time = 60
+    
+                    time.sleep(wait_time + 2)
+    
+                    res = requests.get(url)
+    
+                elif res.status_code == 404:
+                    print("Seems like the server has moved and there's nothing you can do. Error 404")
+                    return (default_resp, default_resp, default_resp)
+                else:
+                    print("Неизвестная ошибка, попробуйте позже")
+                    return (default_resp, default_resp, default_resp)
+    
+
 # Google play
-CompetitorsList_toAppIdsGP = data.get("GooglePlay", {})
-monitored_AppIds = {}
-for competitors in CompetitorsList_toAppIdsGP:
-    try:
-        app_AppId = CompetitorsList_toAppIdsGP[competitors]
-        result = gp.app(app_AppId, lang="ru", country="RU")    
-        print(f'{competitors}: "updated": {dt.datetime.fromtimestamp(result["updated"])}, "version": {result["version"]}. Adding to service monitoring list')
-        monitored_AppIds[app_AppId] = (competitors, dt.datetime.fromtimestamp(result["updated"]), result["version"])
-    except Exception as e:
-        print(f"Error fetching data for {competitors}: {e}")
-
-
-
 # don't forget to finish it, it is the shortage of the succeeding 3 functions
 def parse_google_play(appid : str) -> tuple:
-    return()
+    url = f"https://google.com{appid}&hl=ru&gl=ru"
+    return safe_requesting(url, "", [], True)
+
 
 def parse_app_store(appid : str) -> tuple:
     url = f"https://itunes.apple.com/lookup?id={appid}&country=ru"
-    res = requests.get(url)
-    while True:
-        if res.status_code == 200:
-
-            result = res.json().get("results", [])
-            if result:
-                data = result[0]
-                return(
-                    data.get("version", "unknown"),
-                    data.get("releaseNotes", "unknown"),
-                    data.get("currentVersionReleaseDate", "unknown")
-                )
-            else:
-                return("unknown", "unknown", "unknown")
-        else:
-
-            if res.status_code == 403:
-                print("Entry Forbidden, status code 403. Try auth")
-                return ("unknown", "unknown", "unknown")
-
-            elif res.status_code == 429:
-
-                retry_after = res.headers.get("Retry-After", "60")
-
-                try:
-                    wait_time = int(retry_after)
-
-                except Exception as e:
-                    print(f"{e}, so the wait time is defaulted to 60 seconds")
-                    wait_time = 60
-
-                time.sleep(wait_time + 2)
-
-                res = requests.get(url)
-
-            elif res.status_code == 404:
-                print("Seems like the server has moved and there's nothing you can do. Error 404")
-                return ("unknown", "unknown", "unknown")
-            else:
-                print("Неизвестная ошибка, попробуйте позже")
-                return ("unknown", "unknown", "unknown")
+    return(safe_requesting(url, "results", ["version", "releaseNotes", "currentVersionReleaseDate"], False))
     
 def parse_ru_store(appid: str) -> tuple:
     url = f"https://backapi.rustore.ru/applicationData/overallInfo/{appid}"
-    res = requests.get(url).json().get("body", {})
-    return(
-        res.get("versionName", "unknown"),
-        res.get("whatsNew", "unknown"),
-        res.get("appVerUpdatedAt", "unknown")
-    )
+    return(safe_requesting(url, "body", ["versionName", "whatsNew", "appVerUpdatedAt"], False))
+
     
 # it's marked with comments and you prob won't
 
 
-print("\nConnection established with services, fetching patchnotes\n")
-for e in monitored_AppIds:
-    try:
-        url = f"https://play.google.com/store/apps/details?id={e}&hl=ru&gl=RU"
-        dataStore = requests.get(url).text
-        
-        pattern = r'<section[^>]*>.*?Новое в приложении.*?<div[^>]*>([^<]+)</div>.*?</section>'
-        match = re.search(pattern, dataStore, re.DOTALL)
-        
-        if match:
-            text_candAppIdate = match.group(1).strip()
-            if "+" in text_candAppIdate or len(text_candAppIdate) < 5:
-                patchnotes = "Разрабы не дали комментария к обновлению"
-            else:
-                patchnotes = text_candAppIdate
-        else:
-            patchnotes = "No data"
-            
-        print(f"Патчноут для {monitored_AppIds[e][0]}: {patchnotes}\n")
-        yaml_write("GooglePlay.yaml", monitored_AppIds[e][0], e, monitored_AppIds[e][2], patchnotes, monitored_AppIds[e][1])
-        
-        
-    except Exception as x:
-        print(f"Error fetching patchnotes for {e}: {x}")
-
+# ЗАБИТЬ НА ЭТОТ БЛОК, СТАРОЕ ДО ПРОВЕРКИ
 # AppStore
 def fetch_appstore_data() -> None:
     CompetitorsList_toAppIdsAPS = data.get("AppStore", {})

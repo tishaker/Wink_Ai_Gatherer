@@ -63,7 +63,7 @@ def test_yaml_write(tmp_path) -> None:
     
     
 @responses.activate
-def safe_requesting_test_googleplay_success() -> None:
+def test_safe_requesting_test_googleplay_success() -> None:
     # Arrange
     url = 'https://google_winktest.com'
     
@@ -88,7 +88,7 @@ def safe_requesting_test_googleplay_success() -> None:
     
     
 @responses.activate
-def safe_requesting_status_403() -> None:
+def test_safe_requesting_status_403() -> None:
     url = "https://the_site_that_moved.com"
     responses.add(responses.GET, url, status=403)
         
@@ -101,7 +101,7 @@ def safe_requesting_status_403() -> None:
     assert g == "unknown"
 
 @responses.activate
-def safe_requesting_status_429() -> None:
+def test_safe_requesting_status_429() -> None:
     # Arrange
     url = "https://apple_winktest.com"
     responses.add(responses.GET, url, status=429, headers={"Retry-After": '0'})
@@ -126,7 +126,7 @@ def safe_requesting_status_429() -> None:
     assert g == "2026-08-10"
     
 @responses.activate
-def safe_requesting_status_404() -> None:
+def test_safe_requesting_status_404() -> None:
     # Arrange
     url = "https://the_unexisting_website.com"
     responses.add(responses.GET, url, status=404)

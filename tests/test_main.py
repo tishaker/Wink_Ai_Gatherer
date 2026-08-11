@@ -71,6 +71,8 @@ def test_safe_requesting_test_googleplay_success() -> None:
     <html>
         <body>
             ["["12.34.56"]"]
+            <div>Обновлено</div>
+            <div>24 июля 2026 г.</div>
             <div>Что нового</div>
             <div>Исправили баги, улучшили стабильность.</div>
         </body>

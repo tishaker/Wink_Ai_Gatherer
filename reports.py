@@ -66,7 +66,7 @@ def gemini_resp(full_text: str, filename: str = "competitor_report.md") -> str:
     try:
         response = get_client().models.generate_content(
             model='gemini-3.5-flash',
-            contents=prompt,
+            contents=prompt
         )
         return response.text.strip() if response.text else "AI failed to produce a response"
     except Exception as e:

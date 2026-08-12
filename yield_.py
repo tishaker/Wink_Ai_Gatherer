@@ -38,17 +38,16 @@ def yaml_write(
         yaml.safe_dump(data, file, allow_unicode=True, sort_keys=False)
 # ==========
 
-def safe_requesting(url: str, keys: str, attr: list, is_html: bool, default_resp: str ='unknown') -> tuple:
+def safe_requesting(url: str, keys: str, attr: list, is_gp: bool, default_resp: str = 'unknown', gp_id: str = "") -> tuple:
     res = requests.get(url)
     while True:
             if res.status_code == 200:
-                if is_html:
+                if is_gp:
+                    result_gp = gp.app(gp_id, lang='ru', country='ru')
                     html = res.text
-                    
-                    version_match = re.search(r'\["\["(\d+\.\d+[^"]*)"\]', html)
                     patch_match = re.search(r"(?:Что нового|Новое в приложении).*?<div[^>]*>(.*?)</div>", html, re.DOTALL | re.IGNORECASE)
                     
-                    version = version_match.group(1) if version_match else default_resp
+                    version_gp = result_gp["version"] if result_gp["version"] != "Varies with device" else "Версия данного приложения варьируется в зависимости от устройства"
                     
                     if patch_match:
                         patchnotes = re.sub(r'<[^>]+>', '', patch_match.group(1)).strip()
@@ -57,18 +56,9 @@ def safe_requesting(url: str, keys: str, attr: list, is_html: bool, default_resp
                     else:
                         patchnotes = 'No data'
                         
-                    date_match = re.search(r'\["\["(\d+\s+[а-яa-z]+\.?\s+\d{4}\s*г?\.)"\]', html, re.IGNORECASE)
-                    
-                    if not date_match:
-                        date_match = re.search(r'(?:Обновлено|Updated).*?<div[^>]*>(.*?)</div>', html, re.DOTALL | re.IGNORECASE)
-                        
-                    if date_match:
-                        current_date = re.sub(r'<[^>]+>', '', date_match.group(1)).strip()
-                    else:
-                        current_date = default_resp
+                    date_gp = dt.datetime.fromtimestamp(float(result_gp["updated"])) if result_gp["updated"] != "Varies with device" else "Varies with device"
 
-
-                    return (version, patchnotes, current_date)
+                    return (version_gp, patchnotes, date_gp)
 
                 else:    
                     result = res.json().get(keys, [])
@@ -107,14 +97,15 @@ def safe_requesting(url: str, keys: str, attr: list, is_html: bool, default_resp
                     return (default_resp, default_resp, default_resp)
                 else:
                     print("Неизвестная ошибка, попробуйте позже")
+                    print(f"Status code: {res.status_code}")
                     return (default_resp, default_resp, default_resp)
     
 
 # Google play
 # don't forget to finish it, it is the shortage of the succeeding 3 functions
 def parse_google_play(appid : str) -> tuple:
-    url = f"https://google.com{appid}&hl=ru&gl=ru"
-    return safe_requesting(url, "", [], True)
+    url = f"https://play.google.com/store/apps/details?id={appid}&hl=ru&gl=ru"
+    return safe_requesting(url, "", [], True, gp_id=appid)
 
 
 def parse_app_store(appid : str) -> tuple:

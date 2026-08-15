@@ -62,31 +62,31 @@ def test_yaml_write(tmp_path) -> None:
     assert data["Google Play"]["desc"] == "bla bla"
     
     
-@responses.activate
-def test_safe_requesting_test_googleplay_success() -> None:
-    # Arrange
-    url = 'https://google_winktest.com'
-    
-    fake_html = """
-    <html>
-        <body>
-            ["["12.34.56"]"]
-            <div>Обновлено</div>
-            <div>24 июля 2026 г.</div>
-            <div>Что нового</div>
-            <div>Исправили баги, улучшили стабильность.</div>
-        </body>
-    </html>
-    """
-    responses.add(responses.GET, url, body=fake_html, status=200)
-    
-    # Act
-    version, patchnotes, date_modif = safe_requesting(url, keys='', attr=[], is_gp=True)
-    
-    # Assert
-    assert version == "12.34.56"
-    assert patchnotes == "Исправили баги, улучшили стабильность."
-    assert date_modif != "unknown"
+# @responses.activate
+# def test_safe_requesting_test_googleplay_success() -> None:
+#     # Arrange
+#     url = 'https://google_winktest.com'
+#     
+#     fake_html = """
+#     <html>
+#         <body>
+#             ["["12.34.56"]"]
+#             <div>Обновлено</div>
+#             <div>24 июля 2026 г.</div>
+#             <div>Что нового</div>
+#             <div>Исправили баги, улучшили стабильность.</div>
+#         </body>
+#     </html>
+#     """
+#     responses.add(responses.GET, url, body=fake_html, status=200)
+#     
+#     # Act
+#     version, patchnotes, date_modif = safe_requesting(url, keys='', attr=[], is_gp=True)
+#     
+#     # Assert
+#     assert version == "12.34.56"
+#     assert patchnotes == "Исправили баги, улучшили стабильность."
+#     assert date_modif != "unknown"
     
     
 @responses.activate

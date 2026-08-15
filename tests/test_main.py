@@ -4,6 +4,7 @@ from yield_ import yaml_write
 import responses
 from yield_ import safe_requesting
 from reports import gemini_resp
+from unittest.mock import patch
 
 # get_content tests
 
@@ -63,7 +64,8 @@ def test_yaml_write(tmp_path) -> None:
     
     
 @responses.activate
-def test_safe_requesting_test_googleplay_success() -> None:
+@patch("yield_.gp.app")
+def test_safe_requesting_test_googleplay_success(mock_gp_app) -> None:
     # Arrange
     url = 'https://google_winktest.com'
     
@@ -80,8 +82,12 @@ def test_safe_requesting_test_googleplay_success() -> None:
     """
     responses.add(responses.GET, url, body=fake_html, status=200)
     
+    mock_gp_app.return_value = {
+        "version": "12.34.56",
+        "updated": 1784803200
+    }
     # Act
-    version, patchnotes, date_modif = safe_requesting(url, keys='', attr=[], is_html=True)
+    version, patchnotes, date_modif = safe_requesting(url, keys='', attr=[], is_gp=True, gp_id="wink.example.app")
     
     # Assert
     assert version == "12.34.56"

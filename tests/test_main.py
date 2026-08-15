@@ -81,7 +81,7 @@ def test_safe_requesting_test_googleplay_success() -> None:
     responses.add(responses.GET, url, body=fake_html, status=200)
     
     # Act
-    version, patchnotes, date_modif = safe_requesting(url, keys='', attr=[], is_html=True)
+    version, patchnotes, date_modif = safe_requesting(url, keys='', attr=[], is_gp=True)
     
     # Assert
     assert version == "12.34.56"

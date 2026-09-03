@@ -1,18 +1,17 @@
 import os
 import yaml
 import datetime as time
-from google import genai
+from openai import OpenAI  # Заменили google-genai на стандартный openai
 from dotenv import load_dotenv
-
 
 load_dotenv()
 
-def get_client(api_key: str | None = None) -> genai.Client:
-    if api_key:
-        return genai.Client(api_key=api_key)
-    
-    # that's when we return the other key if the main one is absent, for example in tests
-    return genai.Client(api_key=os.getenv("GEMINI_API_KEY") or "DUMMY_KEY_FOR_TESTS")
+def get_client() -> OpenAI:
+    # Инициализируем клиент OpenAI, перенаправляя его на эндпоинт OpenRouter
+    return OpenAI(
+        base_url=os.getenv("AI_BASE_URL"),
+        api_key=os.getenv("OPENROUTER_API_KEY") or "DUMMY_KEY_FOR_TESTS"
+    )
 
 
 def report(path: str = "competitor_report.txt") -> None:
@@ -29,7 +28,7 @@ def report(path: str = "competitor_report.txt") -> None:
             print(f"cобираю данные из {fname}")
             txt = get_content(fpath)
             
-            print(f"отправил весь {fname} в Gemini, жду ответ")
+            print(f"отправил весь {fname} в Gemini через OpenRouter, жду ответ")
             ans = gemini_resp(txt, fname)
             
             file.write(f"{ans}\n\n")
@@ -64,11 +63,15 @@ def gemini_resp(full_text: str, filename: str = "competitor_report.md") -> str:
     """
     
     try:
-        response = get_client().models.generate_content(
-            model='gemini-3.5-flash',
-            contents=prompt
+        # Переписано под синтаксис OpenAI / OpenRouter
+        response = get_client().chat.completions.create(
+            model='google/gemini-2.5-flash',  # Актуальный ID модели на OpenRouter
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
         )
-        return response.text.strip() if response.text else "AI failed to produce a response"
+        # Достаем текст из объекта ответа OpenAI
+        return response.choices[0].message.content.strip() if response.choices[0].message.content else "AI failed to produce a response"
     except Exception as e:
         print(f"Ошибка при обработке файла {filename}: {e}")
         return f"{filename}\n----------\nОшибка обработки данных ИИ."

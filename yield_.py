@@ -113,7 +113,7 @@ def parse_app_store(appid : str) -> tuple:
     return(safe_requesting(url, "results", ["version", "releaseNotes", "currentVersionReleaseDate"], False))
     
 def parse_ru_store(appid: str) -> tuple:
-    url = f"https://backapi.rustore.ru/applicationData/overallInfo/{appid}"
+    url = f"https://www.rustore.ru/api/v1/application/{appid}"
     return(safe_requesting(url, "body", ["versionName", "whatsNew", "appVerUpdatedAt"], False))
 
     

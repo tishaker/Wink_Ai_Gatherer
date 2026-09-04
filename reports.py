@@ -1,41 +1,20 @@
 import os
-import yaml
+import requests
 import datetime as time
-from openai import OpenAI  # Заменили google-genai на стандартный openai
+import yaml
 from dotenv import load_dotenv
-
+from openai import OpenAI
 load_dotenv()
 
+
 def get_client() -> OpenAI:
-    # Инициализируем клиент OpenAI, перенаправляя его на эндпоинт OpenRouter
-    return OpenAI(
-        base_url=os.getenv("AI_BASE_URL"),
-        api_key=os.getenv("OPENROUTER_API_KEY") or "DUMMY_KEY_FOR_TESTS"
-    )
-
-
-def report(path: str = "competitor_report.txt") -> None:
-    with open(path, 'w', encoding='utf-8') as file:
-        file.write("\tCompetitors_LastestUpd_Report\n\n")
-        
-        files = ["GooglePlay.yaml", "AppStore.yaml", "RuStore.yaml"]
-        for fname in files:
-            fpath = f"yaml_files/{fname}"
-            
-            if not os.path.exists(fpath):
-                continue
-                
-            print(f"cобираю данные из {fname}")
-            txt = get_content(fpath)
-            
-            print(f"отправил весь {fname} в Gemini через OpenRouter, жду ответ")
-            ans = gemini_resp(txt, fname)
-            
-            file.write(f"{ans}\n\n")
-            
-    print("done writing a report")
+    base_url = (os.getenv("AI_BASE_URL") or "https://openrouter.ai/api/v1").strip(' "\'')
+    api_key = (os.getenv("OPENROUTER_API_KEY") or "DUMMY_KEY_FOR_TESTS").strip(' "\'')
     
-    SetDateStamp()
+    return OpenAI(
+        base_url=base_url,
+        api_key=api_key,
+    )
 
 
 def gemini_resp(full_text: str, filename: str = "competitor_report.md") -> str:
@@ -49,7 +28,7 @@ def gemini_resp(full_text: str, filename: str = "competitor_report.md") -> str:
     * если там только вода ("исправили баги"), напиши: "технические исправления," и вкратце их опиши.
     * если изменений нет или написано "No data", напиши: "изменения не указаны".
     * обязательно выдели появление новых тайлов фильмов и тд и выдели их отдельно снизу указывая платформу, Это - самое важное.
-    * обязательео выведи отчёт в markdown
+    * обязательно выведи отчёт в markdown
     * сделай разделение по платформам, чтобы было понятно, что это за платформа (GooglePlay, AppStore, RuStore)
     
     Верни ответ строго в формате маркированного списка, для читабельности, например:
@@ -61,24 +40,55 @@ def gemini_resp(full_text: str, filename: str = "competitor_report.md") -> str:
     исходные данные:
     {full_text}
     """
-    
+
+    raw_api_key = os.getenv("OPENROUTER_API_KEY", "")
+    api_key = raw_api_key.strip(' "\'')
+
+    if not api_key:
+        print("ОШИБКА: OPENROUTER_API_KEY пустой!")
+        return f"{filename}\n----------\nОшибка: Не задан API ключ."
+
+    url = "https://openrouter.ai/api/v1/chat/completions"
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "HTTP-Referer": "https://github.com/Project_Artyom",
+        "X-Title": "Project Artyom",
+        "Content-Type": "application/json",
+        "User-Agent": "ProjectArtyom/1.0"
+    }
+
+    model = os.getenv("OPENROUTER_MODEL", "openai/gpt-oss-20b").strip(' "\'')
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.2
+    }
+
     try:
-        # Переписано под синтаксис OpenAI / OpenRouter
-        response = get_client().chat.completions.create(
-            model='google/gemini-2.5-flash',  # Актуальный ID модели на OpenRouter
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
-        # Достаем текст из объекта ответа OpenAI
-        return response.choices[0].message.content.strip() if response.choices[0].message.content else "AI failed to produce a response"
+        response = requests.post(url, headers=headers, json=payload, timeout=60)
+        
+        if response.status_code != 200:
+            try:
+                error = response.json().get("error", {})
+                message = error.get("message", response.text)
+            except ValueError:
+                message = response.text
+
+            print(f"\nОШИБКА СЕРВЕРА [{response.status_code}]:\n{message}\n")
+            return f"{filename}\n----------\nОшибка API (код {response.status_code}): {message}"
+
+        data = response.json()
+        content = data["choices"][0]["message"]["content"]
+        return content.strip()
+
     except Exception as e:
-        print(f"Ошибка при обработке файла {filename}: {e}")
-        return f"{filename}\n----------\nОшибка обработки данных ИИ."
+        print(f"Ошибка выполнения запроса: {e}")
+        return f"{filename}\n----------\nОшибка сети: {e}"
 
 
 def get_content(fpath: str) -> str:
-    with open(fpath, 'r', encoding='utf-8') as f:
+    with open(fpath, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
     if not data:
@@ -99,14 +109,47 @@ def get_content(fpath: str) -> str:
             f"\tописание: {desc}\n"
             f"{'-' * 30}\n"
         )
-        
+
     return content
 
 
 def SetDateStamp(filename: str = "competitor_report.txt") -> None:
     now = time.datetime.now()
-    months = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"]
-    with open(filename, 'a', encoding="utf-8") as file:
-        file.write(f"\nОтчёт был сформирован {now.year} года {now.day} {months[now.month - 1]} в {now.hour} часов {now.minute} минут {now.second}.{(now.microsecond // 1000):03d} секунд")
-        
+    months = [
+        "января", "февраля", "марта", "апреля", "мая", "июня",
+        "июля", "августа", "сентября", "октября", "ноября", "декабря"
+    ]
+    with open(filename, "a", encoding="utf-8") as file:
+        file.write(
+            f"\nОтчёт был сформирован {now.year} года {now.day} {months[now.month - 1]} "
+            f"в {now.hour} часов {now.minute} минут {now.second}.{(now.microsecond // 1000):03d} секунд"
+        )
+
     print("\ntimestamp set")
+
+
+def report(path: str = "competitor_report.txt") -> None:
+    # Удаляем старый отчёт с мусорным CSS перед формированием нового
+    if os.path.exists(path):
+        os.remove(path)
+
+    with open(path, "w", encoding="utf-8") as file:
+        file.write("\tCompetitors_LastestUpd_Report\n\n")
+
+        files = ["GooglePlay.yml", "AppStore.yml", "RuStore.yml"]
+        for fname in files:
+            fpath = f"yaml_files/{fname}"
+
+            if not os.path.exists(fpath):
+                continue
+
+            print(f"собираю данные из {fname}")
+            txt = get_content(fpath)
+
+            print(f"отправил весь {fname} в Gemini через OpenRouter, жду ответ")
+            ans = gemini_resp(txt, fname)
+
+            file.write(f"{ans}\n\n")
+
+    print("done writing a report")
+    SetDateStamp(path)

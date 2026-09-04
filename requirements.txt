@@ -3,4 +3,7 @@ requests
 google_play_scraper
 pyyaml
 google-genai
+openai
+pytest
+responses
 responses

@@ -3,9 +3,9 @@ from reports import report
 import yaml
     
 stores = [
-    {"name": "GooglePlay", "file": "GooglePlay.yaml", "parser": parse_google_play},
-    {"name": "AppStore", "file": "AppStore.yaml", "parser": parse_app_store},
-    {"name": "RuStore", "file": "RuStore.yaml", "parser": parse_ru_store}
+    {"name": "GooglePlay", "file": "GooglePlay.yml", "parser": parse_google_play},
+    {"name": "AppStore", "file": "AppStore.yml", "parser": parse_app_store},
+    # {"name": "RuStore", "file": "RuStore.yml", "parser": parse_ru_store}
 ]
 
 if __name__ == "__main__":

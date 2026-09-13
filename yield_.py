@@ -113,8 +113,40 @@ def parse_app_store(appid : str) -> tuple:
     return(safe_requesting(url, "results", ["version", "releaseNotes", "currentVersionReleaseDate"], False))
     
 def parse_ru_store(appid: str) -> tuple:
-    url = f"https://www.rustore.ru/api/v1/application/{appid}"
-    return(safe_requesting(url, "body", ["versionName", "whatsNew", "appVerUpdatedAt"], False))
+    """
+    RuStore сменил API: старый backapi.rustore.ru/applicationData/overallInfo мёртв (400),
+    а /api/v1/application отдаёт 404. Сайт переехал на Next.js SSR.
+    Данные встроены в RSC-payload HTML страницы каталога — парсим их оттуда.
+    """
+    url = f"https://www.rustore.ru/catalog/app/{appid}"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "ru-RU,ru;q=0.9",
+    }
+    res = requests.get(url, headers=headers, timeout=15)
+
+    if res.status_code == 404:
+        return ("unknown", "Приложение не найдено в RuStore", "unknown")
+    if res.status_code != 200:
+        return ("unknown", f"Ошибка RuStore: {res.status_code}", "unknown")
+
+    html = res.text
+    default = "unknown"
+
+    m = re.search(r'versionName\\":\\"([^\\]+)', html)
+    version = m.group(1) if m else default
+
+    m = re.search(r'whatsNew\\":\\"(.+?)(?=\\"[^\\])', html)
+    if m:
+        patchnotes = m.group(1).replace("\\n", "\n").replace("\\\\", "\\").replace('\\"', '"')
+    else:
+        patchnotes = "изменения не указаны"
+
+    m = re.search(r'appVerUpdatedAt\\":\\"([^\\]+)', html)
+    date_updated = m.group(1) if m else default
+
+    return (version, patchnotes, date_updated)
 
     
 # it's marked with comments and you prob won't

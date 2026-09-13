@@ -3,6 +3,7 @@ from reports import get_content
 from yield_ import yaml_write
 import responses
 from yield_ import safe_requesting
+from yield_ import parse_ru_store
 from reports import gemini_resp
 
 # get_content tests
@@ -140,3 +141,37 @@ def test_safe_requesting_status_404() -> None:
     assert v == "known"
     assert p == "known"
     assert g == "known"
+
+
+@responses.activate
+def test_parse_ru_store_success() -> None:
+    """RuStore API умер, парсим SSR-страницу каталога."""
+    url = "https://www.rustore.ru/catalog/app/ru.test.app"
+    # Имитируем RSC-payload как на реальном сайте
+    fake_html = (
+        'self.__next_f.push([1,"{\\\"versionName\\\":\\\"2.0.1\\\",'
+        '\\\"whatsNew\\\":\\\"Исправили баги и добавили новый плеер\\\\n'
+        'Теперь работает ещё быстрее\\\",'
+        '\\\"appVerUpdatedAt\\\":\\\"2026-09-10T12:00:00.000+00:00\\\"}"])\n'
+    )
+    responses.add(responses.GET, url, body=fake_html, status=200)
+
+    v, p, d = parse_ru_store("ru.test.app")
+
+    assert v == "2.0.1"
+    assert "Исправили баги" in p
+    assert "новый плеер" in p
+    assert d == "2026-09-10T12:00:00.000+00:00"
+
+
+@responses.activate
+def test_parse_ru_store_not_found() -> None:
+    """Приложение не найдено — 404."""
+    url = "https://www.rustore.ru/catalog/app/ru.nonexistent.app"
+    responses.add(responses.GET, url, status=404)
+
+    v, p, d = parse_ru_store("ru.nonexistent.app")
+
+    assert v == "unknown"
+    assert "не найдено" in p.lower()
+    assert d == "unknown"

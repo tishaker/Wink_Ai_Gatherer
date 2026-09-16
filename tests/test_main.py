@@ -4,7 +4,6 @@ from yield_ import yaml_write
 import responses
 from yield_ import safe_requesting
 from yield_ import parse_ru_store
-from reports import gemini_resp
 from unittest.mock import patch
 
 # get_content tests

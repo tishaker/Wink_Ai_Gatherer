@@ -1,6 +1,6 @@
 import os
 import requests
-import datetime as time
+import datetime
 import yaml
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -114,7 +114,7 @@ def get_content(fpath: str) -> str:
 
 
 def SetDateStamp(filename: str = "competitor_report.txt") -> None:
-    now = time.datetime.now()
+    now =  datetime.datetime.now()
     months = [
         "января", "февраля", "марта", "апреля", "мая", "июня",
         "июля", "августа", "сентября", "октября", "ноября", "декабря"

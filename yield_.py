@@ -78,19 +78,24 @@ def safe_requesting(url: str, keys: str, attr: list, is_gp: bool, default_resp: 
                     return (default_resp, default_resp, default_resp)
     
                 elif res.status_code == 429:
-    
-                    retry_after = res.headers.get("Retry-After", "60")
-    
-                    try:
-                        wait_time = int(retry_after)
-    
-                    except Exception as e:
-                        print(f"{e}, so the wait time is defaulted to 60 seconds")
-                        wait_time = 60
-    
-                    time.sleep(wait_time + 2)
-    
-                    res = requests.get(url)
+                    max_retries = 5
+                    num_retries = 0
+                    while num_retries < max_retries and res.status_code == 429:
+                        num_retries += 1
+                        print(f"Rate limit exceeded, retrying in several seconds... (Attempt {num_retries}/{max_retries})")
+
+                        retry_after = res.headers.get("Retry-After", "60")
+                
+                        try:
+                            wait_time = int(retry_after)
+
+                        except Exception as e:
+                            print(f"{e}, so the wait time is defaulted to 60 seconds")
+                            wait_time = 60
+                
+                        time.sleep(wait_time + 30)
+
+                        res = requests.get(url)
     
                 elif res.status_code == 404:
                     print("Seems like the server has moved and there's nothing you can do. Error 404")
@@ -147,53 +152,3 @@ def parse_ru_store(appid: str) -> tuple:
     date_updated = m.group(1) if m else default
 
     return (version, patchnotes, date_updated)
-
-    
-# it's marked with comments and you prob won't
-
-
-# ЗАБИТЬ НА ЭТОТ БЛОК, СТАРОЕ ДО ПРОВЕРКИ
-# AppStore
-def fetch_appstore_data() -> None:
-    CompetitorsList_toAppIdsAPS = data.get("AppStore", {})
-
-    for competitors in CompetitorsList_toAppIdsAPS:
-        try:
-            AppId = CompetitorsList_toAppIdsAPS[competitors]
-            if AppId != "nonexistent":
-                url = f"https://itunes.apple.com/lookup?id={AppId}&country=ru"
-                dataStore = requests.get(url).json()
-                print(f"\n{competitors}")
-                print(dataStore["results"][0]["releaseNotes"])
-                print(dataStore["results"][0]["version"])
-                print(dataStore["results"][0]["currentVersionReleaseDate"])
-                yaml_write("AppStore.yaml", competitors, AppId, dataStore["results"][0]["version"], dataStore["results"][0]["releaseNotes"], dataStore["results"][0]["currentVersionReleaseDate"])
-            else:
-                print(f"{competitors} doesn't exist in that app store\n")
-        except Exception as x:
-            print(f"Error for {competitors}: {x}")
-
-# RuStore
-def fetch_rustore_data() -> None:
-    CompetitorsList_toAppIdsRuStore = data.get("RuStore", {})
-    
-    for competitors in CompetitorsList_toAppIdsRuStore:
-        try:
-            AppId = CompetitorsList_toAppIdsRuStore[competitors]
-            url = f"https://backapi.rustore.ru/applicationData/overallInfo/{AppId}"
-            response = requests.get(url)
-            stc = response.status_code
-            
-            print(f"Status code {stc}")
-            body = response.json().get("body", {})
-            
-            version = body.get("versionName", "unknown")
-            patchnotes = body.get("whatsNew", "Разработчик не оставил описание изменений")
-            date_modified = body.get("appVerUpdatedAt", "unknown")
-            print(f"\n{competitors}")
-            print(version)
-            print(patchnotes)
-            print(date_modified)
-            yaml_write("RuStore.yaml", competitors, AppId, version, patchnotes, date_modified)
-        except Exception as x:
-            print(f"Error for {competitors}: {x}")

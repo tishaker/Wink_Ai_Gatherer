@@ -62,6 +62,26 @@ def test_yaml_write(tmp_path) -> None:
     assert data["Google Play"]["AppId"] == "1234"
     assert data["Google Play"]["desc"] == "bla bla"
     
+def test_set_datestamp() -> None:
+    from reports import SetDateStamp
+    import os
+
+    test_file = "test_report.txt"
+    
+    # Act
+    SetDateStamp(test_file)
+    
+    # Assert
+    assert os.path.exists(test_file)
+    
+    with open(test_file, "r", encoding="utf-8") as f:
+        content = f.read()
+        
+    assert "Отчёт был сформирован" in content
+    
+    # Clean up
+    os.remove(test_file)
+    
     
 @responses.activate
 @patch("yield_.gp.app")

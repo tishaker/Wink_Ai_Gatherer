@@ -1,6 +1,7 @@
 from yield_ import parse_app_store, parse_ru_store, parse_google_play, yaml_write
 from reports import report
 import yaml
+from pathlib import Path
     
 stores = [
     {"name": "GooglePlay", "file": "GooglePlay.yml", "parser": parse_google_play},
@@ -11,7 +12,8 @@ stores = [
 if __name__ == "__main__":
     print("Начало работы скрипта")
     
-    with open("AppIds_list.yaml", "r", encoding="utf-8") as file:
+    app_ids_path = Path(__file__).with_name("AppIds_list.yaml")
+    with app_ids_path.open("r", encoding="utf-8") as file:
         data = yaml.safe_load(file)
     
     for store in stores:

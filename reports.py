@@ -126,7 +126,8 @@ def SetDateStamp(filename: str = "competitor_report.txt") -> None:
         )
 
     print("\ntimestamp set")
-
+    
+    
 
 def report(path: str = "competitor_report.txt") -> None:
     # Удаляем старый отчёт с мусорным CSS перед формированием нового

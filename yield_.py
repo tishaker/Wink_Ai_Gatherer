@@ -6,10 +6,6 @@ import time
 import google_play_scraper as gp
 import datetime as dt
 
-# yaml setup
-with open("AppIds_list.yaml", "r", encoding="utf-8") as file:
-    data = yaml.safe_load(file)
-
 def yaml_write(
     path: str, # Path to the file in system
     section: str, # e.g. Google Play, AppStore..

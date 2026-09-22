@@ -15,7 +15,7 @@ if __name__ == "__main__":
     app_ids_path = Path(__file__).with_name("AppIds_list.yaml")
     with app_ids_path.open("r", encoding="utf-8") as file:
         data = yaml.safe_load(file)
-    
+     
     for store in stores:
         competitors_list = data.get(store["name"], {})
         

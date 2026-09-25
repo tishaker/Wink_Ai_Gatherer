@@ -4,7 +4,7 @@ from yield_ import yaml_write
 import responses
 from yield_ import safe_requesting
 from yield_ import parse_ru_store
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 # get_content tests
 
@@ -200,3 +200,21 @@ def test_parse_ru_store_not_found() -> None:
     assert v == "unknown"
     assert "не найдено" in p.lower()
     assert d == "unknown"
+
+
+@patch("reports.get_client")
+def test_gemini_resp_uses_router_ai_only(mock_get_client, monkeypatch) -> None:
+    monkeypatch.setenv("ROUTER_AI_API_KEY", "test-router-key")
+    monkeypatch.setenv("ROUTER_AI_MODEL", "openai/gpt-oss-20b")
+
+    router_client = MagicMock()
+    router_client.chat.completions.create.return_value.choices = [
+        type("Choice", (), {"message": type("Message", (), {"content": "Router AI OK"})()})()
+    ]
+
+    mock_get_client.return_value = router_client
+
+    result = __import__("reports").gemini_resp("тестовые данные", "sample.md")
+
+    assert result == "Router AI OK"
+    assert mock_get_client.call_count == 1

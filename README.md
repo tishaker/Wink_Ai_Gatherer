@@ -3,6 +3,7 @@
 * В файле **AppIds_list.yaml** содержатся id приложений конкурентов в трёх магазинах: App Store, Google Play, Ru Store
 * Для запуска используйте **main.py**
 
+Стандартно, цикл идёт раз в 7 дней, но это можно поменять в docker-compose.yml
 
 Настройка
 -----------------------------------------------
@@ -11,8 +12,26 @@
 
 Как создать локальный `.env` из шаблона:
 
-       cp env.example .env
+       cp .env.example .env
 
 ### Установка всех библиотек в своей среде:
 
        pip install -r requirements.txt
+
+### Запустить докер контейнер для работы скрипта:
+
+       docker compose up --build # запуск самого контейнера
+
+### Запустить разовый тест:
+
+       RUN_ONCE=1 docker compose up --build
+
+### Посмотреть отчёт:
+
+       cat competitor_report.txt
+-----------------------------------------------
+Переменные, нужные для окружения:
+
+       ROUTER_AI_API_KEY
+       ROUTER_AI_MODEL
+       ROUTER_AI_BASE_URL

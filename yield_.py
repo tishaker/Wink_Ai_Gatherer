@@ -35,75 +35,82 @@ def yaml_write(
 # ==========
 
 def safe_requesting(url: str, keys: str, attr: list, is_gp: bool, default_resp: str = 'unknown', gp_id: str = "") -> tuple:
-    res = requests.get(url)
+    max_retries = 3
+    retry_count = 0
+
     while True:
-            if res.status_code == 200:
-                if is_gp:
+        try:
+            res = requests.get(url, timeout=20)
+        except requests.RequestException as exc:
+            print(f"Request failed for {url}: {exc}")
+            return (default_resp, default_resp, default_resp)
+
+        if res.status_code == 200:
+            if is_gp:
+                try:
                     result_gp = gp.app(gp_id, lang='ru', country='ru')
-                    html = res.text
-                    patch_match = re.search(r"(?:Что нового|Новое в приложении).*?<div[^>]*>(.*?)</div>", html, re.DOTALL | re.IGNORECASE)
-                    
-                    version_gp = result_gp["version"] if result_gp["version"] != "Varies with device" else "Версия данного приложения варьируется в зависимости от устройства"
-                    
-                    if patch_match:
-                        patchnotes = re.sub(r'<[^>]+>', '', patch_match.group(1)).strip()
-                        if '+' in patchnotes or len(patchnotes) < 5:
-                            patchnotes = 'No developer comments for this update'
-                    else:
-                        patchnotes = 'No data'
-                        
-                    date_gp = dt.datetime.fromtimestamp(float(result_gp["updated"])) if result_gp["updated"] != "Varies with device" else "Varies with device"
-
-                    return (version_gp, patchnotes, date_gp)
-
-                else:    
-                    result = res.json().get(keys, [])
-                    if result:
-                        if isinstance(result, list):
-                            data = result[0]
-                        else:
-                            data = result
-
-                        return tuple(data.get(a, default_resp) for a in attr) # генератор, чтобы было не фикс. знач элементов
-                    else:
-                        return(default_resp, default_resp, default_resp)
-            else:
-    
-                if res.status_code == 403:
-                    print("Entry Forbidden, status code 403. Try auth")
+                except Exception as exc:
+                    print(f"Google Play scraper failed for {gp_id}: {exc}")
                     return (default_resp, default_resp, default_resp)
-    
-                elif res.status_code == 429:
-                    max_retries = 5
-                    num_retries = 0
-                    while num_retries < max_retries and res.status_code == 429:
-                        num_retries += 1
-                        print(f"Rate limit exceeded, retrying in several seconds... (Attempt {num_retries}/{max_retries})")
 
-                        retry_after = res.headers.get("Retry-After", "60")
-                
-                        try:
-                            wait_time = int(retry_after)
+                html = res.text
+                patch_match = re.search(r"(?:Что нового|Новое в приложении).*?<div[^>]*>(.*?)</div>", html, re.DOTALL | re.IGNORECASE)
 
-                        except Exception as e:
-                            print(f"{e}, so the wait time is defaulted to 60 seconds")
-                            wait_time = 60
-                
-                        time.sleep(wait_time + 30)
+                version_gp = result_gp["version"] if result_gp["version"] != "Varies with device" else "Версия данного приложения варьируется в зависимости от устройства"
 
-                        res = requests.get(url)
-    
-                elif res.status_code == 404:
-                    print("Seems like the server has moved and there's nothing you can do. Error 404")
-                    return (default_resp, default_resp, default_resp)
+                if patch_match:
+                    patchnotes = re.sub(r'<[^>]+>', '', patch_match.group(1)).strip()
+                    if '+' in patchnotes or len(patchnotes) < 5:
+                        patchnotes = 'No developer comments for this update'
                 else:
-                    print("Неизвестная ошибка, попробуйте позже")
-                    print(f"Status code: {res.status_code}")
-                    return (default_resp, default_resp, default_resp)
-    
+                    patchnotes = 'No data'
 
-# Google play
-# don't forget to finish it, it is the shortage of the succeeding 3 functions
+                date_gp = dt.datetime.fromtimestamp(float(result_gp["updated"])) if result_gp["updated"] != "Varies with device" else "Varies with device"
+                return (version_gp, patchnotes, date_gp)
+
+            try:
+                payload = res.json()
+            except ValueError:
+                return (default_resp, default_resp, default_resp)
+
+            result = payload.get(keys, [])
+            if result:
+                if isinstance(result, list):
+                    data = result[0]
+                else:
+                    data = result
+                return tuple(data.get(a, default_resp) for a in attr)
+            return (default_resp, default_resp, default_resp)
+
+        if res.status_code == 403:
+            print("Entry Forbidden, status code 403. Try auth")
+            return (default_resp, default_resp, default_resp)
+
+        if res.status_code == 429:
+            if retry_count >= max_retries:
+                print("Rate limit exceeded too many times. Stopping retry loop.")
+                return (default_resp, default_resp, default_resp)
+
+            retry_count += 1
+            retry_after = res.headers.get("Retry-After", "30")
+            try:
+                wait_time = int(retry_after)
+            except (TypeError, ValueError):
+                wait_time = 30
+
+            print(f"Rate limit exceeded, retrying in {wait_time} seconds... (Attempt {retry_count}/{max_retries})")
+            time.sleep(wait_time)
+            continue
+
+        if res.status_code == 404:
+            print("Seems like the server has moved and there's nothing you can do. Error 404")
+            return (default_resp, default_resp, default_resp)
+
+        print("Неизвестная ошибка, попробуйте позже")
+        print(f"Status code: {res.status_code}")
+        return (default_resp, default_resp, default_resp)
+
+
 def parse_google_play(appid : str) -> tuple:
     url = f"https://play.google.com/store/apps/details?id={appid}&hl=ru&gl=ru"
     return safe_requesting(url, "", [], True, gp_id=appid)
@@ -112,7 +119,8 @@ def parse_google_play(appid : str) -> tuple:
 def parse_app_store(appid : str) -> tuple:
     url = f"https://itunes.apple.com/lookup?id={appid}&country=ru"
     return(safe_requesting(url, "results", ["version", "releaseNotes", "currentVersionReleaseDate"], False))
-    
+
+
 def parse_ru_store(appid: str) -> tuple:
     """
     RuStore сменил API: старый backapi.rustore.ru/applicationData/overallInfo мёртв (400),

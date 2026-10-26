@@ -1,37 +1,49 @@
-***Wink_Ai_Gatherer - скрипт-проект для онлайн-кинотеатра WINK, который позволяет генерировать отчёты по обновлениям конкурентов в магазинах приложений.***
+***Wink_Ai_Gatherer - a script project for the WINK online cinema that allows generating reports on competitor updates across app stores.***
 
-* В файле **AppIds_list.yaml** содержатся id приложений конкурентов в трёх магазинах: App Store, Google Play, Ru Store
-* Для запуска используйте **main.py**
+* The **AppIds_list.yaml** file contains the app IDs of competitors in three stores: App Store, Google Play, Ru Store
+* Use **main.py** to run the script
 
-Стандартно, цикл идёт раз в 7 дней, но это можно поменять в docker-compose.yml
+By default, the cycle runs once every 7 days, but this can be changed in docker-compose.yml
 
-Настройка
------------------------------------------------
+Setup
+--------------------------------------------------
 
-### Настройка `.env`
+### `.env` Setup
 
-Как создать локальный `.env` из шаблона:
+How to create a local `.env` from the template:
 
-       cp .env.example .env
+```bash
+cp .env.example .env
+```
 
-### Установка всех библиотек в своей среде:
+### Installing all libraries in your environment:
 
-       pip install -r requirements.txt
+```bash
+pip install -r requirements.txt
+```
 
-### Запустить докер контейнер для работы скрипта:
+### Start the docker container for the script to work:
 
-       docker compose up --build # запуск самого контейнера
+```bash
+docker compose up --build # launch the container itself
+```
 
-### Запустить разовый тест:
+### Run a one-time test:
 
-       RUN_ONCE=1 docker compose up --build
+```bash
+RUN_ONCE=1 docker compose up --build
+```
 
-### Посмотреть отчёт:
+### View the report:
 
-       cat competitor_report.txt
------------------------------------------------
-Переменные, нужные для окружения:
+```bash
+cat competitor_report.txt
+```
+--------------------------------------------------
+Environment variables needed:
 
-       ROUTER_AI_API_KEY
-       ROUTER_AI_MODEL
-       ROUTER_AI_BASE_URL
+```env
+ROUTER_AI_API_KEY
+ROUTER_AI_MODEL
+ROUTER_AI_BASE_URL
+```
